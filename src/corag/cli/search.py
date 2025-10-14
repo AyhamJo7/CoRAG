@@ -76,14 +76,14 @@ def main(
     max_tokens: int,
     max_steps: int,
     k: int,
-    output: str,
+    output: str | None,
 ) -> None:
     """Run CoRAG multi-step retrieval search."""
-    index_dir = Path(index_dir)
+    index_dir_obj = Path(index_dir)
 
     # Load index
-    logger.info(f"Loading index from {index_dir}")
-    index = FAISSIndex.load(index_dir)
+    logger.info(f"Loading index from {index_dir_obj}")
+    index = FAISSIndex.load(index_dir_obj)
 
     # Load embedder
     logger.info(f"Loading embedder: {embedding_model}")

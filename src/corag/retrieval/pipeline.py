@@ -163,7 +163,10 @@ class RetrievalPipeline:
             if not sub_queries:
                 return [question]
 
-            return sub_queries
+            # Ensure we have a list of strings
+            if isinstance(sub_queries, list):
+                return [str(q) for q in sub_queries]
+            return [question]
 
         except (json.JSONDecodeError, KeyError) as e:
             logger.warning(f"Failed to parse decomposition: {e}. Using original query.")
@@ -243,7 +246,10 @@ class RetrievalPipeline:
             state.contradictions = data.get("contradictions", [])
 
             follow_ups = data.get("follow_up_queries", [])
-            return follow_ups
+            # Ensure we have a list of strings
+            if isinstance(follow_ups, list):
+                return [str(q) for q in follow_ups]
+            return []
 
         except (json.JSONDecodeError, KeyError) as e:
             logger.warning(f"Failed to parse gap analysis: {e}")
@@ -283,7 +289,7 @@ class RetrievalPipeline:
                 f"Self-critique: sufficient={is_sufficient}, confidence={confidence:.2f}"
             )
 
-            return is_sufficient
+            return bool(is_sufficient)
 
         except (json.JSONDecodeError, KeyError) as e:
             logger.warning(f"Failed to parse self-critique: {e}")

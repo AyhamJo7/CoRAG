@@ -61,15 +61,15 @@ def main(
     temperature: float,
     max_steps: int,
     k: int,
-    max_examples: int,
-    output: str,
+    max_examples: int | None,
+    output: str | None,
 ) -> None:
     """Run evaluation on a multi-hop QA dataset."""
-    index_dir = Path(index_dir)
+    index_dir_obj = Path(index_dir)
 
     # Load index
-    logger.info(f"Loading index from {index_dir}")
-    index = FAISSIndex.load(index_dir)
+    logger.info(f"Loading index from {index_dir_obj}")
+    index = FAISSIndex.load(index_dir_obj)
 
     # Load embedder
     logger.info(f"Loading embedder: {embedding_model}")

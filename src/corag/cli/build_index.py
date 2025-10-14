@@ -42,20 +42,20 @@ def main(
     chunk_size: int,
     chunk_overlap: int,
     batch_size: int,
-    max_docs: int,
+    max_docs: int | None,
 ) -> None:
     """Build FAISS index from document corpus.
 
     CORPUS_PATH: Path to corpus JSONL file
     INDEX_DIR: Directory to save index
     """
-    corpus_path = Path(corpus_path)
-    index_dir = Path(index_dir)
+    corpus_path_obj = Path(corpus_path)
+    index_dir_obj = Path(index_dir)
 
     # Load documents
-    logger.info(f"Loading documents from {corpus_path}")
+    logger.info(f"Loading documents from {corpus_path_obj}")
     ingestor = CorpusIngestor()
-    documents = list(ingestor.ingest_jsonl(corpus_path, max_docs))
+    documents = list(ingestor.ingest_jsonl(corpus_path_obj, max_docs))
     logger.info(f"Loaded {len(documents)} documents")
 
     # Chunk documents
@@ -78,16 +78,19 @@ def main(
 
     # Build index
     logger.info(f"Building {index_type} index...")
+    dimension = embedder.dimension
+    if dimension is None:
+        raise ValueError("Embedder dimension is not set")
     index = FAISSIndex(
-        dimension=embedder.dimension,
+        dimension=dimension,
         index_type=index_type,
         nlist=nlist,
     )
     index.build(embeddings, chunks)
 
     # Save index
-    logger.info(f"Saving index to {index_dir}")
-    index.save(index_dir)
+    logger.info(f"Saving index to {index_dir_obj}")
+    index.save(index_dir_obj)
 
     logger.info("Index building complete!")
 

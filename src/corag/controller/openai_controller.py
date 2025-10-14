@@ -35,11 +35,10 @@ class OpenAIController(Controller):
         self.max_retries = max_retries
         self.retry_delay = retry_delay
 
-        client_kwargs = {"api_key": api_key}
         if api_base:
-            client_kwargs["base_url"] = api_base
-
-        self.client = OpenAI(**client_kwargs)
+            self.client = OpenAI(api_key=api_key, base_url=api_base)
+        else:
+            self.client = OpenAI(api_key=api_key)
 
         # Initialize tokenizer
         try:
@@ -74,29 +73,36 @@ class OpenAIController(Controller):
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
 
-        # Build API call parameters
-        api_params = {
-            "model": self.model,
-            "messages": messages,
-            "temperature": config.temperature,
-            "max_tokens": config.max_tokens,
-            "top_p": config.top_p,
-        }
-
-        if config.stop:
-            api_params["stop"] = config.stop
-        if config.seed is not None:
-            api_params["seed"] = config.seed
-
         # Retry loop
         for attempt in range(self.max_retries):
             try:
-                response = self.client.chat.completions.create(**api_params)
-                text = response.choices[0].message.content
+                if config.stop:
+                    response = self.client.chat.completions.create(
+                        model=self.model,
+                        messages=messages,
+                        temperature=config.temperature,
+                        max_tokens=config.max_tokens,
+                        top_p=config.top_p,
+                        stop=config.stop,
+                        seed=config.seed,
+                    )
+                else:
+                    response = self.client.chat.completions.create(
+                        model=self.model,
+                        messages=messages,
+                        temperature=config.temperature,
+                        max_tokens=config.max_tokens,
+                        top_p=config.top_p,
+                        seed=config.seed,
+                    )
+
+                text: str = response.choices[0].message.content or ""
+                if not text:
+                    raise ValueError("Response content is None or empty")
 
                 logger.debug(
                     f"Generated {len(text)} chars, "
-                    f"tokens: {response.usage.total_tokens}"
+                    f"tokens: {response.usage.total_tokens if response.usage else 0}"
                 )
 
                 return text

@@ -16,7 +16,7 @@ class EvalExample:
     id: str
     question: str
     answer: str
-    supporting_facts: list[str] = None  # Document titles or IDs
+    supporting_facts: list[str] | None = None  # Document titles or IDs
     type: str = ""  # Question type (e.g., bridge, comparison)
     level: str = ""  # Difficulty level
 

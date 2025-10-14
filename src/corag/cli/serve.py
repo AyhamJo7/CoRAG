@@ -26,7 +26,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Global state
-app_state = {}
+app_state: dict[str, object] = {}
 
 
 class AskRequest(BaseModel):
@@ -72,8 +72,8 @@ async def ask(request: AskRequest) -> AskResponse:
     """Answer a complex question using CoRAG."""
     try:
         # Get components from state
-        pipeline = app_state["pipeline"]
-        synthesizer = app_state["synthesizer"]
+        pipeline: RetrievalPipeline = app_state["pipeline"]  # type: ignore[assignment]
+        synthesizer: Synthesizer = app_state["synthesizer"]  # type: ignore[assignment]
 
         # Update config
         config = GenerationConfig(
@@ -139,11 +139,11 @@ def main(
     port: int,
 ) -> None:
     """Start the CoRAG API server."""
-    index_dir = Path(index_dir)
+    index_dir_obj = Path(index_dir)
 
     # Load components
-    logger.info(f"Loading index from {index_dir}")
-    index = FAISSIndex.load(index_dir)
+    logger.info(f"Loading index from {index_dir_obj}")
+    index = FAISSIndex.load(index_dir_obj)
 
     logger.info(f"Loading embedder: {embedding_model}")
     embedder = Embedder(model_name=embedding_model, device=device)
