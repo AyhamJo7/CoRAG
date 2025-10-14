@@ -2,9 +2,11 @@
 
 import logging
 import time
+from typing import Any, cast
 
 import tiktoken
 from openai import OpenAI
+from openai.types.chat import ChatCompletionMessageParam
 
 from corag.controller.base import Controller, GenerationConfig
 
@@ -68,10 +70,13 @@ class OpenAIController(Controller):
         if config is None:
             config = GenerationConfig()
 
-        messages = []
+        messages: list[dict[str, Any]] = []
         if system:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
+
+        # Cast messages to the expected type for OpenAI API
+        typed_messages = cast(list[ChatCompletionMessageParam], messages)
 
         # Retry loop
         for attempt in range(self.max_retries):
@@ -79,7 +84,7 @@ class OpenAIController(Controller):
                 if config.stop:
                     response = self.client.chat.completions.create(
                         model=self.model,
-                        messages=messages,
+                        messages=typed_messages,
                         temperature=config.temperature,
                         max_tokens=config.max_tokens,
                         top_p=config.top_p,
@@ -89,7 +94,7 @@ class OpenAIController(Controller):
                 else:
                     response = self.client.chat.completions.create(
                         model=self.model,
-                        messages=messages,
+                        messages=typed_messages,
                         temperature=config.temperature,
                         max_tokens=config.max_tokens,
                         top_p=config.top_p,
