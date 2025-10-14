@@ -1,0 +1,48 @@
+# CoRAG Configuration
+
+# LLM Settings
+llm:
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0.2
+  max_tokens: 2048
+
+# Embedding Settings
+embedding:
+  model: sentence-transformers/msmarco-distilbert-base-v4
+  device: cpu
+  batch_size: 32
+
+# Indexing Settings
+index:
+  type: Flat  # Flat or IVF
+  nlist: 100  # For IVF only
+  metric: inner_product  # inner_product or l2
+
+# Chunking Settings
+chunking:
+  chunk_size: 512
+  chunk_overlap: 64
+  min_chunk_size: 50
+
+# Retrieval Settings
+retrieval:
+  k: 8  # Chunks per query
+  max_steps: 6  # Maximum retrieval steps
+  similarity_threshold: 0.85  # For query deduplication
+
+# Generation Settings
+generation:
+  temperature: 0.3
+  max_context_chunks: 20
+  max_chunk_length: 500
+
+# API Settings
+api:
+  host: 0.0.0.0
+  port: 8000
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
