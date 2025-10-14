@@ -32,7 +32,9 @@ logger = logging.getLogger(__name__)
     help="Dataset name",
 )
 @click.option("--split", default="validation", help="Dataset split")
-@click.option("--index-dir", required=True, type=click.Path(exists=True), help="Index directory")
+@click.option(
+    "--index-dir", required=True, type=click.Path(exists=True), help="Index directory"
+)
 @click.option(
     "--embedding-model",
     default="sentence-transformers/msmarco-distilbert-base-v4",
@@ -40,7 +42,9 @@ logger = logging.getLogger(__name__)
 )
 @click.option("--device", default="cpu", help="Device")
 @click.option("--provider", default="openai", help="LLM provider")
-@click.option("--model", default=os.getenv("DEFAULT_LLM_MODEL", "gpt-4o-mini"), help="LLM model")
+@click.option(
+    "--model", default=os.getenv("DEFAULT_LLM_MODEL", "gpt-4o-mini"), help="LLM model"
+)
 @click.option("--temperature", default=0.2, type=float, help="Temperature")
 @click.option("--max-steps", default=6, type=int, help="Max retrieval steps")
 @click.option("--k", default=8, type=int, help="Chunks per query")
@@ -114,14 +118,14 @@ def main(
     print(f"\nDataset: {report.dataset}")
     print(f"Split: {report.split}")
     print(f"Examples: {report.num_examples}")
-    print(f"\nMetrics:")
+    print("\nMetrics:")
     print(f"  Exact Match: {report.avg_em:.4f}")
     print(f"  F1 Score:    {report.avg_f1:.4f}")
-    print(f"\nRetrieval Stats:")
+    print("\nRetrieval Stats:")
     print(f"  Avg Steps:         {report.avg_steps:.2f}")
     print(f"  Avg Chunks:        {report.avg_chunks:.2f}")
     print(f"  Avg Unique Chunks: {report.avg_unique_chunks:.2f}")
-    print(f"\nEfficiency:")
+    print("\nEfficiency:")
     print(f"  Avg Latency: {report.avg_latency:.2f}s")
     print("=" * 80)
 

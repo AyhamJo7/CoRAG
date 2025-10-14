@@ -2,9 +2,9 @@
 
 import json
 import logging
+from collections.abc import Iterator
 from datetime import datetime
 from pathlib import Path
-from typing import Iterator, List, Optional
 
 from corag.corpus.document import Document
 
@@ -15,7 +15,7 @@ class CorpusIngestor:
     """Ingests documents from various formats."""
 
     def ingest_jsonl(
-        self, path: Path, max_docs: Optional[int] = None
+        self, path: Path, max_docs: int | None = None
     ) -> Iterator[Document]:
         """Ingest documents from JSONL file.
 
@@ -27,7 +27,7 @@ class CorpusIngestor:
             Document objects
         """
         count = 0
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             for line_num, line in enumerate(f, 1):
                 if max_docs and count >= max_docs:
                     break
@@ -45,7 +45,7 @@ class CorpusIngestor:
 
         logger.info(f"Ingested {count} documents from {path}")
 
-    def _parse_document(self, data: dict, line_num: int) -> Optional[Document]:
+    def _parse_document(self, data: dict, line_num: int) -> Document | None:
         """Parse document from dictionary.
 
         Args:
@@ -79,7 +79,7 @@ class CorpusIngestor:
         )
 
     def ingest_directory(
-        self, directory: Path, pattern: str = "*.jsonl", max_docs: Optional[int] = None
+        self, directory: Path, pattern: str = "*.jsonl", max_docs: int | None = None
     ) -> Iterator[Document]:
         """Ingest documents from directory of JSONL files.
 
@@ -100,7 +100,7 @@ class CorpusIngestor:
                 if max_docs and count >= max_docs:
                     return
 
-    def save_documents(self, documents: List[Document], output_path: Path) -> None:
+    def save_documents(self, documents: list[Document], output_path: Path) -> None:
         """Save documents to JSONL file.
 
         Args:

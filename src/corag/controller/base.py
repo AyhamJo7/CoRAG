@@ -2,7 +2,6 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -12,8 +11,8 @@ class GenerationConfig:
     temperature: float = 0.2
     max_tokens: int = 2048
     top_p: float = 1.0
-    stop: Optional[list[str]] = None
-    seed: Optional[int] = None
+    stop: list[str] | None = None
+    seed: int | None = None
 
 
 class Controller(ABC):
@@ -23,8 +22,8 @@ class Controller(ABC):
     def generate(
         self,
         prompt: str,
-        system: Optional[str] = None,
-        config: Optional[GenerationConfig] = None,
+        system: str | None = None,
+        config: GenerationConfig | None = None,
     ) -> str:
         """Generate text from a prompt.
 

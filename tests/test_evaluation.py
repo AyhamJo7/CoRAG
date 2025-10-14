@@ -1,15 +1,13 @@
 """Tests for evaluation module."""
 
-import pytest
-
 from corag.evaluation.metrics import (
-    normalize_answer,
+    compute_retrieval_precision,
+    compute_retrieval_recall,
     exact_match,
     f1_score,
-    max_f1_over_ground_truths,
     max_em_over_ground_truths,
-    compute_retrieval_recall,
-    compute_retrieval_precision,
+    max_f1_over_ground_truths,
+    normalize_answer,
 )
 
 

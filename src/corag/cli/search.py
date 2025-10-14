@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 
 @click.command()
 @click.option("--question", required=True, help="Question to answer")
-@click.option("--index-dir", required=True, type=click.Path(exists=True), help="Index directory")
+@click.option(
+    "--index-dir", required=True, type=click.Path(exists=True), help="Index directory"
+)
 @click.option(
     "--embedding-model",
     default="sentence-transformers/msmarco-distilbert-base-v4",
@@ -120,10 +122,12 @@ def main(
     print("\n" + "=" * 80)
     print(f"Question: {question}")
     print("=" * 80)
-    print(f"\nRetrieved {state.total_chunks_retrieved} chunks across {len(state.steps)} steps")
+    print(
+        f"\nRetrieved {state.total_chunks_retrieved} chunks across {len(state.steps)} steps"
+    )
     print(f"Unique chunks: {len(state.get_unique_chunks())}")
     print(f"Is sufficient: {state.is_sufficient}")
-    print(f"\nExecuted queries:")
+    print("\nExecuted queries:")
     for i, query in enumerate(state.executed_queries, 1):
         print(f"  {i}. {query}")
 

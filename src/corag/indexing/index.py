@@ -4,7 +4,6 @@ import json
 import logging
 import pickle
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 
 import faiss
 import numpy as np
@@ -37,8 +36,8 @@ class FAISSIndex:
         self.nlist = nlist
         self.metric = metric
 
-        self.index: Optional[faiss.Index] = None
-        self.docstore: Dict[int, Chunk] = {}
+        self.index: faiss.Index | None = None
+        self.docstore: dict[int, Chunk] = {}
         self.is_trained = False
 
         self._initialize_index()
@@ -70,7 +69,7 @@ class FAISSIndex:
 
         logger.info(f"Initialized {self.index_type} index with {self.metric} metric")
 
-    def build(self, embeddings: np.ndarray, chunks: List[Chunk]) -> None:
+    def build(self, embeddings: np.ndarray, chunks: list[Chunk]) -> None:
         """Build index from embeddings and chunks.
 
         Args:
@@ -79,6 +78,8 @@ class FAISSIndex:
         """
         if len(embeddings) != len(chunks):
             raise ValueError("Number of embeddings and chunks must match")
+
+        assert self.index is not None, "Index must be initialized"
 
         logger.info(f"Building index with {len(embeddings)} vectors")
 
@@ -99,7 +100,7 @@ class FAISSIndex:
 
     def search(
         self, query_embedding: np.ndarray, k: int = 10
-    ) -> Tuple[List[Chunk], List[float]]:
+    ) -> tuple[list[Chunk], list[float]]:
         """Search for similar chunks.
 
         Args:
@@ -109,6 +110,8 @@ class FAISSIndex:
         Returns:
             Tuple of (chunks, scores)
         """
+        assert self.index is not None, "Index must be initialized"
+
         if self.index.ntotal == 0:
             return [], []
 
@@ -123,7 +126,7 @@ class FAISSIndex:
         # Retrieve chunks
         chunks = []
         valid_scores = []
-        for idx, score in zip(indices[0], scores[0]):
+        for idx, score in zip(indices[0], scores[0], strict=False):
             if idx in self.docstore:
                 chunks.append(self.docstore[idx])
                 valid_scores.append(float(score))
@@ -136,6 +139,8 @@ class FAISSIndex:
         Args:
             index_dir: Directory to save index files
         """
+        assert self.index is not None, "Index must be initialized"
+
         index_dir.mkdir(parents=True, exist_ok=True)
 
         # Save FAISS index
@@ -174,7 +179,7 @@ class FAISSIndex:
         """
         # Load metadata
         metadata_path = index_dir / "metadata.json"
-        with open(metadata_path, "r") as f:
+        with open(metadata_path) as f:
             metadata = json.load(f)
 
         # Create instance
@@ -195,5 +200,7 @@ class FAISSIndex:
         with open(docstore_path, "rb") as f:
             instance.docstore = pickle.load(f)
 
-        logger.info(f"Loaded index with {instance.index.ntotal} vectors from {index_dir}")
+        logger.info(
+            f"Loaded index with {instance.index.ntotal} vectors from {index_dir}"
+        )
         return instance

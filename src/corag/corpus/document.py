@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -12,12 +12,12 @@ class Document:
     id: str
     title: str
     text: str
-    url: Optional[str] = None
-    sections: List[str] = field(default_factory=list)
-    timestamp: Optional[datetime] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    url: str | None = None
+    sections: list[str] = field(default_factory=list)
+    timestamp: datetime | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert document to dictionary."""
         return {
             "id": self.id,
@@ -30,7 +30,7 @@ class Document:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Document":
+    def from_dict(cls, data: dict[str, Any]) -> "Document":
         """Create document from dictionary."""
         timestamp = None
         if data.get("timestamp"):
@@ -58,11 +58,11 @@ class Chunk:
     end_char: int
     tokens: int
     doc_title: str
-    doc_url: Optional[str] = None
-    section: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    doc_url: str | None = None
+    section: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert chunk to dictionary."""
         return {
             "chunk_id": self.chunk_id,
@@ -78,7 +78,7 @@ class Chunk:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Chunk":
+    def from_dict(cls, data: dict[str, Any]) -> "Chunk":
         """Create chunk from dictionary."""
         return cls(
             chunk_id=data["chunk_id"],

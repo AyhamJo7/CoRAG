@@ -5,7 +5,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from tqdm import tqdm
 
@@ -35,7 +35,7 @@ class EvaluationResult:
     num_chunks: int
     num_unique_chunks: int
     latency: float
-    retrieval_state: Optional[Dict[str, Any]] = None
+    retrieval_state: dict[str, Any] | None = None
 
 
 @dataclass
@@ -51,9 +51,9 @@ class EvaluationReport:
     avg_chunks: float
     avg_unique_chunks: float
     avg_latency: float
-    results: List[EvaluationResult] = field(default_factory=list)
+    results: list[EvaluationResult] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "dataset": self.dataset,
@@ -81,7 +81,7 @@ class Evaluator:
         self,
         retrieval_pipeline: RetrievalPipeline,
         synthesizer: Synthesizer,
-        dataset_loader: Optional[DatasetLoader] = None,
+        dataset_loader: DatasetLoader | None = None,
     ):
         """Initialize evaluator.
 
@@ -98,8 +98,8 @@ class Evaluator:
         self,
         dataset_name: str,
         split: str = "validation",
-        max_examples: Optional[int] = None,
-        save_results: Optional[Path] = None,
+        max_examples: int | None = None,
+        save_results: Path | None = None,
     ) -> EvaluationReport:
         """Evaluate on a dataset.
 
@@ -124,7 +124,9 @@ class Evaluator:
         # Aggregate metrics
         report = self._aggregate_results(dataset_name, split, results)
 
-        logger.info(f"Evaluation complete: EM={report.avg_em:.3f}, F1={report.avg_f1:.3f}")
+        logger.info(
+            f"Evaluation complete: EM={report.avg_em:.3f}, F1={report.avg_f1:.3f}"
+        )
 
         # Save results if requested
         if save_results:
@@ -196,12 +198,13 @@ class Evaluator:
         # Remove citation markers for fair comparison
         # Keep the actual text, just remove [1], [2], etc.
         import re
+
         answer = re.sub(r"\[\d+\]", "", answer)
 
         return answer.strip()
 
     def _aggregate_results(
-        self, dataset: str, split: str, results: List[EvaluationResult]
+        self, dataset: str, split: str, results: list[EvaluationResult]
     ) -> EvaluationReport:
         """Aggregate results into a report.
 
@@ -268,7 +271,9 @@ class Evaluator:
         csv_path = output_path.with_suffix(".csv")
         with open(csv_path, "w") as f:
             # Header
-            f.write("id,question,prediction,ground_truth,em,f1,steps,chunks,unique_chunks,latency\n")
+            f.write(
+                "id,question,prediction,ground_truth,em,f1,steps,chunks,unique_chunks,latency\n"
+            )
 
             # Rows
             for r in report.results:
@@ -279,8 +284,8 @@ class Evaluator:
 
                 f.write(
                     f'{r.example_id},"{question}","{prediction}","{ground_truth}",'
-                    f'{r.em},{r.f1},{r.num_steps},{r.num_chunks},'
-                    f'{r.num_unique_chunks},{r.latency:.2f}\n'
+                    f"{r.em},{r.f1},{r.num_steps},{r.num_chunks},"
+                    f"{r.num_unique_chunks},{r.latency:.2f}\n"
                 )
 
         logger.info(f"Saved detailed results to {csv_path}")

@@ -3,7 +3,6 @@
 import re
 import string
 from collections import Counter
-from typing import List, Set
 
 
 def normalize_answer(text: str) -> str:
@@ -63,7 +62,7 @@ def f1_score(prediction: str, ground_truth: str) -> float:
     return f1
 
 
-def max_f1_over_ground_truths(prediction: str, ground_truths: List[str]) -> float:
+def max_f1_over_ground_truths(prediction: str, ground_truths: list[str]) -> float:
     """Compute max F1 over multiple ground truths.
 
     Args:
@@ -78,7 +77,7 @@ def max_f1_over_ground_truths(prediction: str, ground_truths: List[str]) -> floa
     return max(f1_score(prediction, gt) for gt in ground_truths)
 
 
-def max_em_over_ground_truths(prediction: str, ground_truths: List[str]) -> float:
+def max_em_over_ground_truths(prediction: str, ground_truths: list[str]) -> float:
     """Compute max EM over multiple ground truths.
 
     Args:
@@ -94,7 +93,7 @@ def max_em_over_ground_truths(prediction: str, ground_truths: List[str]) -> floa
 
 
 def compute_retrieval_recall(
-    retrieved_doc_ids: Set[str], gold_doc_ids: Set[str]
+    retrieved_doc_ids: set[str], gold_doc_ids: set[str]
 ) -> float:
     """Compute retrieval recall.
 
@@ -113,7 +112,7 @@ def compute_retrieval_recall(
 
 
 def compute_retrieval_precision(
-    retrieved_doc_ids: Set[str], gold_doc_ids: Set[str]
+    retrieved_doc_ids: set[str], gold_doc_ids: set[str]
 ) -> float:
     """Compute retrieval precision.
 

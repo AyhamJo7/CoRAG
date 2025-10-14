@@ -10,9 +10,9 @@ from dotenv import load_dotenv
 
 from corag.controller.base import GenerationConfig
 from corag.controller.openai_controller import OpenAIController
+from corag.corpus.document import Chunk
 from corag.generation.synthesizer import Synthesizer
 from corag.retrieval.state import RetrievalState, RetrievalStep
-from corag.corpus.document import Chunk
 
 load_dotenv()
 
@@ -24,7 +24,9 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option("--trace", required=True, type=click.Path(exists=True), help="Trace JSON file")
+@click.option(
+    "--trace", required=True, type=click.Path(exists=True), help="Trace JSON file"
+)
 @click.option("--output", required=True, type=click.Path(), help="Output markdown file")
 @click.option("--provider", default="openai", help="LLM provider")
 @click.option(
@@ -46,7 +48,7 @@ def main(
 
     # Load trace
     logger.info(f"Loading trace from {trace_path}")
-    with open(trace_path, "r") as f:
+    with open(trace_path) as f:
         trace_data = json.load(f)
 
     # Reconstruct state

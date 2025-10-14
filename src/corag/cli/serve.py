@@ -108,11 +108,13 @@ async def ask(request: AskRequest) -> AskResponse:
 
     except Exception as e:
         logger.error(f"Error processing request: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @click.command()
-@click.option("--index-dir", required=True, type=click.Path(exists=True), help="Index directory")
+@click.option(
+    "--index-dir", required=True, type=click.Path(exists=True), help="Index directory"
+)
 @click.option(
     "--embedding-model",
     default="sentence-transformers/msmarco-distilbert-base-v4",
@@ -120,9 +122,13 @@ async def ask(request: AskRequest) -> AskResponse:
 )
 @click.option("--device", default="cpu", help="Device")
 @click.option("--provider", default="openai", help="LLM provider")
-@click.option("--model", default=os.getenv("DEFAULT_LLM_MODEL", "gpt-4o-mini"), help="LLM model")
+@click.option(
+    "--model", default=os.getenv("DEFAULT_LLM_MODEL", "gpt-4o-mini"), help="LLM model"
+)
 @click.option("--host", default=os.getenv("API_HOST", "0.0.0.0"), help="Host")
-@click.option("--port", default=int(os.getenv("API_PORT", "8000")), type=int, help="Port")
+@click.option(
+    "--port", default=int(os.getenv("API_PORT", "8000")), type=int, help="Port"
+)
 def main(
     index_dir: str,
     embedding_model: str,

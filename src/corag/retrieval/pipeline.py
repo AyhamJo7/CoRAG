@@ -2,7 +2,6 @@
 
 import json
 import logging
-from typing import List, Optional, Tuple
 
 from corag.controller.base import Controller, GenerationConfig
 from corag.controller.prompts import (
@@ -29,7 +28,7 @@ class RetrievalPipeline:
         k: int = 8,
         max_steps: int = 6,
         similarity_threshold: float = 0.85,
-        config: Optional[GenerationConfig] = None,
+        config: GenerationConfig | None = None,
     ):
         """Initialize retrieval pipeline.
 
@@ -139,7 +138,7 @@ class RetrievalPipeline:
 
         return state
 
-    def _decompose_query(self, question: str) -> List[str]:
+    def _decompose_query(self, question: str) -> list[str]:
         """Decompose complex query into sub-queries.
 
         Args:
@@ -170,7 +169,7 @@ class RetrievalPipeline:
             logger.warning(f"Failed to parse decomposition: {e}. Using original query.")
             return [question]
 
-    def _retrieve(self, query: str) -> Tuple[List, List[float]]:
+    def _retrieve(self, query: str) -> tuple[list, list[float]]:
         """Retrieve chunks for a query.
 
         Args:
@@ -183,7 +182,7 @@ class RetrievalPipeline:
         chunks, scores = self.index.search(query_embedding, k=self.k)
         return chunks, scores
 
-    def _is_duplicate_query(self, query: str, executed_queries: List[str]) -> bool:
+    def _is_duplicate_query(self, query: str, executed_queries: list[str]) -> bool:
         """Check if query is too similar to executed queries.
 
         Args:
@@ -213,7 +212,7 @@ class RetrievalPipeline:
 
         return False
 
-    def _analyze_gaps(self, state: RetrievalState) -> List[str]:
+    def _analyze_gaps(self, state: RetrievalState) -> list[str]:
         """Analyze gaps in retrieved information.
 
         Args:
@@ -227,12 +226,6 @@ class RetrievalPipeline:
         info_summary = "\n\n".join(
             [f"- {truncate_text(c.text, 200)}" for c in unique_chunks[:10]]
         )
-
-        prompt = f"""Executed queries: {', '.join(state.executed_queries)}
-
-Information retrieved:
-{info_summary}
-"""
 
         try:
             response = self.controller.generate(

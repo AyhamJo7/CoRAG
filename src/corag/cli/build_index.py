@@ -4,10 +4,8 @@ import logging
 from pathlib import Path
 
 import click
-from tqdm import tqdm
 
 from corag.corpus.chunker import Chunker
-from corag.corpus.document import Document
 from corag.corpus.ingest import CorpusIngestor
 from corag.indexing.embedder import Embedder
 from corag.indexing.index import FAISSIndex
@@ -68,7 +66,9 @@ def main(
 
     # Initialize embedder
     logger.info(f"Loading embedding model: {embedding_model}")
-    embedder = Embedder(model_name=embedding_model, device=device, batch_size=batch_size)
+    embedder = Embedder(
+        model_name=embedding_model, device=device, batch_size=batch_size
+    )
 
     # Embed chunks
     logger.info("Embedding chunks...")

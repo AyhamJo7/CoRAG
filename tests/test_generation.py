@@ -1,13 +1,11 @@
 """Tests for generation module."""
 
-import pytest
-
 from corag.generation.synthesizer import Synthesizer
-from corag.retrieval.state import RetrievalState, RetrievalStep
 
 
 def test_synthesizer_format_sources(sample_chunks):
     """Test source formatting."""
+
     # Create mock controller (we won't call generate in this test)
     class MockController:
         def generate(self, prompt, system=None, config=None):
@@ -30,6 +28,7 @@ def test_synthesizer_format_sources(sample_chunks):
 
 def test_synthesizer_verify_citations():
     """Test citation verification."""
+
     class MockController:
         def generate(self, prompt, system=None, config=None):
             return "Test"
@@ -42,17 +41,24 @@ def test_synthesizer_verify_citations():
 
     # Valid citations
     answer = "Paris is the capital [1] and largest city [2]."
-    citations = [{"id": "1", "title": "Doc1", "url": ""}, {"id": "2", "title": "Doc2", "url": ""}]
+    citations = [
+        {"id": "1", "title": "Doc1", "url": ""},
+        {"id": "2", "title": "Doc2", "url": ""},
+    ]
     assert synthesizer.verify_citations(answer, citations) is True
 
     # Invalid citation
     answer = "Paris is the capital [1] and largest city [3]."
-    citations = [{"id": "1", "title": "Doc1", "url": ""}, {"id": "2", "title": "Doc2", "url": ""}]
+    citations = [
+        {"id": "1", "title": "Doc1", "url": ""},
+        {"id": "2", "title": "Doc2", "url": ""},
+    ]
     assert synthesizer.verify_citations(answer, citations) is False
 
 
 def test_synthesizer_format_answer_with_citations():
     """Test answer formatting with references."""
+
     class MockController:
         def generate(self, prompt, system=None, config=None):
             return "Test"

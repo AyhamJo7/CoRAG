@@ -1,7 +1,5 @@
 """Tests for indexing module."""
 
-import pytest
-import numpy as np
 import tempfile
 from pathlib import Path
 
@@ -12,8 +10,8 @@ from corag.utils.text import clean_text, count_tokens_approximate
 def test_faiss_index_build(faiss_index, mock_embeddings, sample_chunks):
     """Test building FAISS index."""
     # Use only as many chunks as embeddings
-    chunks = sample_chunks[:len(mock_embeddings)]
-    embeddings = mock_embeddings[:len(chunks)]
+    chunks = sample_chunks[: len(mock_embeddings)]
+    embeddings = mock_embeddings[: len(chunks)]
 
     faiss_index.build(embeddings, chunks)
 
@@ -23,8 +21,8 @@ def test_faiss_index_build(faiss_index, mock_embeddings, sample_chunks):
 
 def test_faiss_index_search(faiss_index, mock_embeddings, sample_chunks):
     """Test FAISS search."""
-    chunks = sample_chunks[:len(mock_embeddings)]
-    embeddings = mock_embeddings[:len(chunks)]
+    chunks = sample_chunks[: len(mock_embeddings)]
+    embeddings = mock_embeddings[: len(chunks)]
 
     faiss_index.build(embeddings, chunks)
 
@@ -42,8 +40,8 @@ def test_faiss_index_save_load(faiss_index, mock_embeddings, sample_chunks):
     with tempfile.TemporaryDirectory() as tmpdir:
         index_dir = Path(tmpdir) / "index"
 
-        chunks = sample_chunks[:len(mock_embeddings)]
-        embeddings = mock_embeddings[:len(chunks)]
+        chunks = sample_chunks[: len(mock_embeddings)]
+        embeddings = mock_embeddings[: len(chunks)]
 
         # Build and save
         faiss_index.build(embeddings, chunks)

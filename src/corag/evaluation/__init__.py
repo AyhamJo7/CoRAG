@@ -1,7 +1,7 @@
 """Evaluation framework for multi-hop QA."""
 
 from corag.evaluation.datasets import DatasetLoader, EvalExample
-from corag.evaluation.evaluator import Evaluator, EvaluationReport, EvaluationResult
+from corag.evaluation.evaluator import EvaluationReport, EvaluationResult, Evaluator
 from corag.evaluation.metrics import (
     exact_match,
     f1_score,

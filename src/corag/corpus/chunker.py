@@ -1,7 +1,6 @@
 """Document chunking with token-based splitting and overlap."""
 
 import hashlib
-from typing import List, Optional
 
 from corag.corpus.document import Chunk, Document
 from corag.utils.text import clean_text, count_tokens_approximate
@@ -27,7 +26,7 @@ class Chunker:
         self.chunk_overlap = chunk_overlap
         self.min_chunk_size = min_chunk_size
 
-    def chunk_document(self, document: Document) -> List[Chunk]:
+    def chunk_document(self, document: Document) -> list[Chunk]:
         """Chunk a document into overlapping pieces.
 
         Args:
@@ -71,7 +70,9 @@ class Chunker:
                     metadata={
                         "doc_sections": document.sections,
                         "doc_timestamp": (
-                            document.timestamp.isoformat() if document.timestamp else None
+                            document.timestamp.isoformat()
+                            if document.timestamp
+                            else None
                         ),
                     },
                 )
@@ -94,7 +95,7 @@ class Chunker:
         content = f"{doc_id}_{chunk_idx}"
         return hashlib.md5(content.encode()).hexdigest()[:16]
 
-    def chunk_documents(self, documents: List[Document]) -> List[Chunk]:
+    def chunk_documents(self, documents: list[Document]) -> list[Chunk]:
         """Chunk multiple documents.
 
         Args:

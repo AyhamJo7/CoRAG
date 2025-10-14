@@ -1,7 +1,5 @@
 """Tests for retrieval module."""
 
-import pytest
-
 from corag.retrieval.state import RetrievalState, RetrievalStep
 
 

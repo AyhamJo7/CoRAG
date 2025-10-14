@@ -1,7 +1,6 @@
 """Text embedding using sentence transformers."""
 
 import logging
-from typing import List, Optional
 
 import numpy as np
 import torch
@@ -16,7 +15,7 @@ class Embedder:
     def __init__(
         self,
         model_name: str = "sentence-transformers/msmarco-distilbert-base-v4",
-        device: Optional[str] = None,
+        device: str | None = None,
         batch_size: int = 32,
     ):
         """Initialize embedder.
@@ -45,7 +44,7 @@ class Embedder:
 
     def embed_texts(
         self,
-        texts: List[str],
+        texts: list[str],
         show_progress: bool = True,
         normalize: bool = True,
     ) -> np.ndarray:

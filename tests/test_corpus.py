@@ -1,12 +1,10 @@
 """Tests for corpus module."""
 
-import pytest
-from pathlib import Path
 import json
 import tempfile
+from pathlib import Path
 
-from corag.corpus.document import Document, Chunk
-from corag.corpus.chunker import Chunker
+from corag.corpus.document import Chunk, Document
 from corag.corpus.ingest import CorpusIngestor
 
 
@@ -73,7 +71,10 @@ def test_corpus_ingestor_max_docs():
         jsonl_path = Path(tmpdir) / "test.jsonl"
         with open(jsonl_path, "w") as f:
             for i in range(10):
-                f.write(json.dumps({"id": str(i), "title": f"Doc {i}", "text": f"Text {i}"}) + "\n")
+                f.write(
+                    json.dumps({"id": str(i), "title": f"Doc {i}", "text": f"Text {i}"})
+                    + "\n"
+                )
 
         ingestor = CorpusIngestor()
         docs = list(ingestor.ingest_jsonl(jsonl_path, max_docs=3))

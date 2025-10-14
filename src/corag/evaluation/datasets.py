@@ -1,9 +1,8 @@
 """Dataset loaders for evaluation."""
 
 import logging
+from collections.abc import Iterator
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Iterator, List, Optional
 
 from datasets import load_dataset
 
@@ -17,7 +16,7 @@ class EvalExample:
     id: str
     question: str
     answer: str
-    supporting_facts: List[str] = None  # Document titles or IDs
+    supporting_facts: list[str] = None  # Document titles or IDs
     type: str = ""  # Question type (e.g., bridge, comparison)
     level: str = ""  # Difficulty level
 
@@ -26,7 +25,7 @@ class DatasetLoader:
     """Loads evaluation datasets."""
 
     def load_hotpotqa(
-        self, split: str = "validation", max_examples: Optional[int] = None
+        self, split: str = "validation", max_examples: int | None = None
     ) -> Iterator[EvalExample]:
         """Load HotpotQA dataset.
 
@@ -73,7 +72,7 @@ class DatasetLoader:
             raise
 
     def load_2wikimultihopqa(
-        self, split: str = "validation", max_examples: Optional[int] = None
+        self, split: str = "validation", max_examples: int | None = None
     ) -> Iterator[EvalExample]:
         """Load 2WikiMultihopQA dataset.
 
@@ -101,9 +100,7 @@ class DatasetLoader:
                 # Extract supporting facts
                 supporting_facts = []
                 if "supporting_facts" in item:
-                    supporting_facts = [
-                        fact[0] for fact in item["supporting_facts"]
-                    ]
+                    supporting_facts = [fact[0] for fact in item["supporting_facts"]]
 
                 example = EvalExample(
                     id=item["_id"],
@@ -127,7 +124,7 @@ class DatasetLoader:
         self,
         dataset_name: str,
         split: str = "validation",
-        max_examples: Optional[int] = None,
+        max_examples: int | None = None,
     ) -> Iterator[EvalExample]:
         """Load a dataset by name.
 

@@ -2,7 +2,6 @@
 
 import logging
 import time
-from typing import Optional
 
 import tiktoken
 from openai import OpenAI
@@ -19,7 +18,7 @@ class OpenAIController(Controller):
         self,
         api_key: str,
         model: str = "gpt-4o-mini",
-        api_base: Optional[str] = None,
+        api_base: str | None = None,
         max_retries: int = 3,
         retry_delay: float = 1.0,
     ):
@@ -54,8 +53,8 @@ class OpenAIController(Controller):
     def generate(
         self,
         prompt: str,
-        system: Optional[str] = None,
-        config: Optional[GenerationConfig] = None,
+        system: str | None = None,
+        config: GenerationConfig | None = None,
     ) -> str:
         """Generate text from a prompt.
 

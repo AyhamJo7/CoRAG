@@ -1,11 +1,10 @@
 """Pytest configuration and fixtures."""
 
-import pytest
 import numpy as np
-from pathlib import Path
-from corag.corpus.document import Document, Chunk
+import pytest
+
 from corag.corpus.chunker import Chunker
-from corag.indexing.embedder import Embedder
+from corag.corpus.document import Chunk, Document
 from corag.indexing.index import FAISSIndex
 
 

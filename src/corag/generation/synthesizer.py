@@ -2,7 +2,6 @@
 
 import logging
 import re
-from typing import Dict, List, Optional, Tuple
 
 from corag.controller.base import Controller, GenerationConfig
 from corag.corpus.document import Chunk
@@ -36,7 +35,7 @@ class Synthesizer:
     def __init__(
         self,
         controller: Controller,
-        config: Optional[GenerationConfig] = None,
+        config: GenerationConfig | None = None,
         max_context_chunks: int = 20,
         max_chunk_length: int = 500,
     ):
@@ -53,9 +52,7 @@ class Synthesizer:
         self.max_context_chunks = max_context_chunks
         self.max_chunk_length = max_chunk_length
 
-    def synthesize(
-        self, state: RetrievalState
-    ) -> Tuple[str, List[Dict[str, str]]]:
+    def synthesize(self, state: RetrievalState) -> tuple[str, list[dict[str, str]]]:
         """Synthesize answer from retrieval state.
 
         Args:
@@ -102,9 +99,7 @@ class Synthesizer:
 
         return answer, citations
 
-    def _format_sources(
-        self, chunks: List[Chunk]
-    ) -> Tuple[str, List[Dict[str, str]]]:
+    def _format_sources(self, chunks: list[Chunk]) -> tuple[str, list[dict[str, str]]]:
         """Format chunks as numbered sources.
 
         Args:
@@ -140,7 +135,7 @@ class Synthesizer:
         sources_text = "\n\n".join(sources)
         return sources_text, citations
 
-    def verify_citations(self, answer: str, citations: List[Dict[str, str]]) -> bool:
+    def verify_citations(self, answer: str, citations: list[dict[str, str]]) -> bool:
         """Verify that all citations in answer are valid.
 
         Args:
@@ -165,7 +160,7 @@ class Synthesizer:
         return True
 
     def format_answer_with_citations(
-        self, answer: str, citations: List[Dict[str, str]]
+        self, answer: str, citations: list[dict[str, str]]
     ) -> str:
         """Format answer with citation list appended.
 
