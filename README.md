@@ -1,7 +1,12 @@
 # CoRAG: Adaptive Multi-Step Retrieval for Complex Queries
 
-[![CI](https://github.com/AyhamJo77/CoRAG/workflows/CI/badge.svg)](https://github.com/AyhamJo77/CoRAG/actions)
+[![CI](https://github.com/AyhamJo7/CoRAG/actions/workflows/ci.yaml/badge.svg)](https://github.com/AyhamJo7/CoRAG/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+<p align="center">
+  <img src="data/CoRAG.png" alt="CoRAG Logo" width="400"/>
+</p>
+
 
 CoRAG is a production-grade system for answering complex, multi-hop questions through adaptive retrieval. Unlike traditional RAG systems that retrieve once, CoRAG iteratively decomposes queries, identifies information gaps, and refines its search until sufficient evidence is gathered.
 
