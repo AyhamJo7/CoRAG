@@ -1,7 +1,6 @@
 # CoRAG: Adaptive Multi-Step Retrieval for Complex Queries
 
-[![CI](https://github.com/AyhamJo7/CoRAG/actions/workflows/ci.yaml/badge.svg)](https://github.com/AyhamJo7/CoRAG/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/AyhamJo7/CoRAG/actions/workflows/ci.yml/badge.svg)](https://github.com/AyhamJo7/CoRAG/actions/workflows/ci.yml)[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 <p align="center">
   <img src="data/CoRAG.png" alt="CoRAG Logo" width="400"/>
