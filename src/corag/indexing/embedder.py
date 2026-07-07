@@ -65,7 +65,7 @@ class Embedder:
             convert_to_numpy=True,
             normalize_embeddings=normalize,
         )
-        return embeddings
+        return np.asarray(embeddings)
 
     def embed_query(self, query: str, normalize: bool = True) -> np.ndarray:
         """Embed a single query.
@@ -82,4 +82,4 @@ class Embedder:
             convert_to_numpy=True,
             normalize_embeddings=normalize,
         )
-        return embedding
+        return np.asarray(embedding)

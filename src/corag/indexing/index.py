@@ -4,6 +4,7 @@ import json
 import logging
 import pickle
 from pathlib import Path
+from typing import Any
 
 import faiss
 import numpy as np
@@ -44,6 +45,10 @@ class FAISSIndex:
 
     def _initialize_index(self) -> None:
         """Initialize the FAISS index."""
+        # FAISS' SWIG-generated classes are flat in the type stubs (IndexFlatIP
+        # and IndexFlatL2 share no usable base), so `quantizer` is typed `Any` to
+        # hold either without mypy narrowing it to the first branch's class.
+        quantizer: Any
         if self.metric == "inner_product":
             if self.index_type == "Flat":
                 self.index = faiss.IndexFlatIP(self.dimension)
