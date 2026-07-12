@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -11,6 +12,8 @@ from tqdm import tqdm
 
 from corag.evaluation.datasets import DatasetLoader, EvalExample
 from corag.evaluation.metrics import (
+    compute_retrieval_precision,
+    compute_retrieval_recall,
     max_em_over_ground_truths,
     max_f1_over_ground_truths,
 )
@@ -35,6 +38,12 @@ class EvaluationResult:
     num_chunks: int
     num_unique_chunks: int
     latency: float
+    # Grounding metrics are None when the example carries no gold
+    # supporting-document titles.
+    retrieval_precision: float | None = None
+    retrieval_recall: float | None = None
+    citation_precision: float | None = None
+    citation_recall: float | None = None
     retrieval_state: dict[str, Any] | None = None
 
 
@@ -51,6 +60,10 @@ class EvaluationReport:
     avg_chunks: float
     avg_unique_chunks: float
     avg_latency: float
+    avg_retrieval_precision: float | None = None
+    avg_retrieval_recall: float | None = None
+    avg_citation_precision: float | None = None
+    avg_citation_recall: float | None = None
     results: list[EvaluationResult] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -62,6 +75,10 @@ class EvaluationReport:
             "metrics": {
                 "exact_match": self.avg_em,
                 "f1": self.avg_f1,
+                "retrieval_precision": self.avg_retrieval_precision,
+                "retrieval_recall": self.avg_retrieval_recall,
+                "citation_precision": self.avg_citation_precision,
+                "citation_recall": self.avg_citation_recall,
             },
             "retrieval_stats": {
                 "avg_steps": self.avg_steps,
@@ -158,13 +175,32 @@ class Evaluator:
         except Exception as e:
             logger.error(f"Error evaluating example {example.id}: {e}")
             prediction = ""
+            answer = ""
+            citations = []
             state = RetrievalState(original_question=example.question)
 
         latency = time.time() - start_time
 
-        # Compute metrics
+        # Compute answer metrics
         em = max_em_over_ground_truths(prediction, [example.answer])
         f1 = max_f1_over_ground_truths(prediction, [example.answer])
+
+        # Compute grounding metrics against gold supporting-document titles
+        retrieval_precision = retrieval_recall = None
+        citation_precision = citation_recall = None
+        gold_titles = set(example.supporting_facts or [])
+        if gold_titles:
+            retrieved_titles = {
+                c.doc_title for c in state.get_unique_chunks() if c.doc_title
+            }
+            retrieval_precision = compute_retrieval_precision(
+                retrieved_titles, gold_titles
+            )
+            retrieval_recall = compute_retrieval_recall(retrieved_titles, gold_titles)
+
+            cited_titles = self._extract_cited_titles(answer, citations)
+            citation_precision = compute_retrieval_precision(cited_titles, gold_titles)
+            citation_recall = compute_retrieval_recall(cited_titles, gold_titles)
 
         result = EvaluationResult(
             example_id=example.id,
@@ -177,10 +213,31 @@ class Evaluator:
             num_chunks=state.total_chunks_retrieved,
             num_unique_chunks=len(state.get_unique_chunks()),
             latency=latency,
+            retrieval_precision=retrieval_precision,
+            retrieval_recall=retrieval_recall,
+            citation_precision=citation_precision,
+            citation_recall=citation_recall,
             retrieval_state=state.to_dict(),
         )
 
         return result
+
+    def _extract_cited_titles(
+        self, answer: str, citations: list[dict[str, str]]
+    ) -> set[str]:
+        """Extract titles of documents actually cited in the answer.
+
+        Args:
+            answer: Full answer text with [n] citation markers
+            citations: Citation entries produced by the synthesizer
+
+        Returns:
+            Set of document titles whose citation marker appears in the answer
+        """
+        cited_ids = set(re.findall(r"\[(\d+)\]", answer))
+        return {
+            c["title"] for c in citations if c.get("id") in cited_ids and c.get("title")
+        }
 
     def _extract_answer_text(self, answer: str) -> str:
         """Extract answer text, removing references section.
@@ -197,8 +254,6 @@ class Evaluator:
 
         # Remove citation markers for fair comparison
         # Keep the actual text, just remove [1], [2], etc.
-        import re
-
         answer = re.sub(r"\[\d+\]", "", answer)
 
         return answer.strip()
@@ -248,8 +303,35 @@ class Evaluator:
             avg_chunks=avg_chunks,
             avg_unique_chunks=avg_unique_chunks,
             avg_latency=avg_latency,
+            avg_retrieval_precision=self._mean_of_present(
+                [r.retrieval_precision for r in results]
+            ),
+            avg_retrieval_recall=self._mean_of_present(
+                [r.retrieval_recall for r in results]
+            ),
+            avg_citation_precision=self._mean_of_present(
+                [r.citation_precision for r in results]
+            ),
+            avg_citation_recall=self._mean_of_present(
+                [r.citation_recall for r in results]
+            ),
             results=results,
         )
+
+    @staticmethod
+    def _mean_of_present(values: list[float | None]) -> float | None:
+        """Average the non-None values, or None if all are missing.
+
+        Args:
+            values: Per-example metric values, None where not computable
+
+        Returns:
+            Mean over examples that have the metric, or None
+        """
+        present = [v for v in values if v is not None]
+        if not present:
+            return None
+        return sum(present) / len(present)
 
     def _save_results(self, report: EvaluationReport, output_path: Path) -> None:
         """Save evaluation results to file.
@@ -272,7 +354,9 @@ class Evaluator:
         with open(csv_path, "w") as f:
             # Header
             f.write(
-                "id,question,prediction,ground_truth,em,f1,steps,chunks,unique_chunks,latency\n"
+                "id,question,prediction,ground_truth,em,f1,steps,chunks,"
+                "unique_chunks,latency,retrieval_precision,retrieval_recall,"
+                "citation_precision,citation_recall\n"
             )
 
             # Rows
@@ -282,10 +366,15 @@ class Evaluator:
                 prediction = r.prediction.replace('"', '""')
                 ground_truth = r.ground_truth.replace('"', '""')
 
+                def fmt(value: float | None) -> str:
+                    return "" if value is None else f"{value:.4f}"
+
                 f.write(
                     f'{r.example_id},"{question}","{prediction}","{ground_truth}",'
                     f"{r.em},{r.f1},{r.num_steps},{r.num_chunks},"
-                    f"{r.num_unique_chunks},{r.latency:.2f}\n"
+                    f"{r.num_unique_chunks},{r.latency:.2f},"
+                    f"{fmt(r.retrieval_precision)},{fmt(r.retrieval_recall)},"
+                    f"{fmt(r.citation_precision)},{fmt(r.citation_recall)}\n"
                 )
 
         logger.info(f"Saved detailed results to {csv_path}")

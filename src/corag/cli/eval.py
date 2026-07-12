@@ -121,6 +121,17 @@ def main(
     print("\nMetrics:")
     print(f"  Exact Match: {report.avg_em:.4f}")
     print(f"  F1 Score:    {report.avg_f1:.4f}")
+    if (
+        report.avg_retrieval_precision is not None
+        and report.avg_retrieval_recall is not None
+        and report.avg_citation_precision is not None
+        and report.avg_citation_recall is not None
+    ):
+        print("\nGrounding (vs. gold supporting documents):")
+        print(f"  Retrieval Precision: {report.avg_retrieval_precision:.4f}")
+        print(f"  Retrieval Recall:    {report.avg_retrieval_recall:.4f}")
+        print(f"  Citation Precision:  {report.avg_citation_precision:.4f}")
+        print(f"  Citation Recall:     {report.avg_citation_recall:.4f}")
     print("\nRetrieval Stats:")
     print(f"  Avg Steps:         {report.avg_steps:.2f}")
     print(f"  Avg Chunks:        {report.avg_chunks:.2f}")

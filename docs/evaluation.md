@@ -20,15 +20,21 @@
 - **F1 Score**: Token-level overlap between prediction and ground truth
 - Both computed after lowercasing, removing articles (a, an, the), and normalizing punctuation
 
+### Grounding
+Computed per example against the dataset's gold supporting-document titles
+(averaged over examples that provide them):
+- **Retrieval Precision**: fraction of retrieved documents that are gold supporting documents
+- **Retrieval Recall**: fraction of gold supporting documents that were retrieved
+- **Citation Precision**: fraction of documents cited in the answer that are gold supporting documents
+- **Citation Recall**: fraction of gold supporting documents cited in the answer
+
 ### Retrieval Efficiency
 - **Avg Steps**: Mean number of retrieval iterations
 - **Avg Chunks**: Mean total chunks retrieved
 - **Avg Unique Chunks**: Mean unique chunks (after deduplication)
-- **Retrieval Recall**: % of gold supporting documents retrieved
 
 ### Efficiency
 - **Avg Latency**: Mean wall-clock time per question (seconds)
-- **Total Tokens**: LLM tokens used (prompt + completion)
 
 ## Running Evaluations
 

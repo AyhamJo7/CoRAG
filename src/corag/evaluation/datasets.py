@@ -1,8 +1,9 @@
 """Dataset loaders for evaluation."""
 
 import logging
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
+from typing import Any
 
 from datasets import load_dataset
 
@@ -19,6 +20,70 @@ class EvalExample:
     supporting_facts: list[str] | None = None  # Document titles or IDs
     type: str = ""  # Question type (e.g., bridge, comparison)
     level: str = ""  # Difficulty level
+
+
+def extract_supporting_titles(supporting_facts: Any) -> list[str]:
+    """Extract unique gold document titles from a supporting_facts field.
+
+    Handles both encodings used by the HuggingFace multi-hop QA datasets:
+    a columnar mapping ``{"title": [...], "sent_id": [...]}`` (HotpotQA
+    distractor) and a row-wise list of ``[title, sent_id]`` pairs
+    (2WikiMultihopQA raw JSON).
+
+    Args:
+        supporting_facts: Raw supporting_facts value from a dataset item
+
+    Returns:
+        Unique document titles, insertion-ordered
+    """
+    titles: list[str] = []
+    if isinstance(supporting_facts, Mapping):
+        titles = [str(t) for t in supporting_facts.get("title", [])]
+    elif isinstance(supporting_facts, list):
+        titles = [
+            str(fact[0])
+            for fact in supporting_facts
+            if isinstance(fact, (list, tuple)) and fact
+        ]
+    return list(dict.fromkeys(titles))
+
+
+def example_from_hotpotqa(item: Mapping[str, Any]) -> EvalExample:
+    """Convert a raw HotpotQA dataset row to an EvalExample.
+
+    Args:
+        item: Raw dataset row
+
+    Returns:
+        EvalExample with gold supporting-document titles
+    """
+    return EvalExample(
+        id=item["id"],
+        question=item["question"],
+        answer=item["answer"],
+        supporting_facts=extract_supporting_titles(item.get("supporting_facts")),
+        type=item.get("type", ""),
+        level=item.get("level", ""),
+    )
+
+
+def example_from_2wiki(item: Mapping[str, Any]) -> EvalExample:
+    """Convert a raw 2WikiMultihopQA dataset row to an EvalExample.
+
+    Args:
+        item: Raw dataset row
+
+    Returns:
+        EvalExample with gold supporting-document titles
+    """
+    return EvalExample(
+        id=item["_id"],
+        question=item["question"],
+        answer=item["answer"],
+        supporting_facts=extract_supporting_titles(item.get("supporting_facts")),
+        type=item.get("type", ""),
+        level="",
+    )
 
 
 class DatasetLoader:
@@ -46,23 +111,7 @@ class DatasetLoader:
                 if max_examples and count >= max_examples:
                     break
 
-                # Extract supporting fact document titles
-                supporting_facts = []
-                if "supporting_facts" in item and item["supporting_facts"]:
-                    supporting_facts = [
-                        fact[0] for fact in item["supporting_facts"]["title"]
-                    ]
-
-                example = EvalExample(
-                    id=item["id"],
-                    question=item["question"],
-                    answer=item["answer"],
-                    supporting_facts=supporting_facts,
-                    type=item.get("type", ""),
-                    level=item.get("level", ""),
-                )
-
-                yield example
+                yield example_from_hotpotqa(item)
                 count += 1
 
             logger.info(f"Loaded {count} examples from HotpotQA")
@@ -97,21 +146,7 @@ class DatasetLoader:
                 if max_examples and count >= max_examples:
                     break
 
-                # Extract supporting facts
-                supporting_facts = []
-                if "supporting_facts" in item:
-                    supporting_facts = [fact[0] for fact in item["supporting_facts"]]
-
-                example = EvalExample(
-                    id=item["_id"],
-                    question=item["question"],
-                    answer=item["answer"],
-                    supporting_facts=supporting_facts,
-                    type=item.get("type", ""),
-                    level="",
-                )
-
-                yield example
+                yield example_from_2wiki(item)
                 count += 1
 
             logger.info(f"Loaded {count} examples from 2WikiMultihopQA")
