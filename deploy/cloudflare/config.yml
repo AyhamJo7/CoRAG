@@ -1,0 +1,20 @@
+# Cloudflare Tunnel ingress for corag.iquantum.co
+# One-time setup on the host (writes the credentials JSON into ~/.cloudflared):
+#   cloudflared tunnel create corag
+#   cloudflared tunnel route dns corag corag.iquantum.co
+# Then replace TUNNEL_CREDENTIALS_FILE below with the generated
+# /etc/cloudflared/<tunnel-id>.json path.
+tunnel: corag
+credentials-file: TUNNEL_CREDENTIALS_FILE
+
+ingress:
+  # Developer API: bearer-key auth, served by FastAPI directly. Only /v1/*
+  # is routed here; every other backend surface stays compose-internal.
+  - hostname: corag.iquantum.co
+    path: ^/v1/.*
+    service: http://api:8000
+  # Everything else goes through the Next.js web app (Auth.js + BFF proxy —
+  # the browser never talks to the FastAPI service directly).
+  - hostname: corag.iquantum.co
+    service: http://web:3000
+  - service: http_status:404

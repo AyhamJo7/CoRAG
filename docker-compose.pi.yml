@@ -1,0 +1,50 @@
+# Raspberry Pi 5 (arm64) overlay: production env, required secrets, memory
+# caps, and no published datastore/API ports (only the tunnel is reachable).
+# Usage:
+#   docker compose -f docker-compose.yml \
+#     -f deploy/cloudflare/docker-compose.tunnel.yml \
+#     -f docker-compose.pi.yml \
+#     --profile tunnel up -d --build
+services:
+  postgres:
+    ports: !reset []
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env on the Pi}
+      CORAG_APP_DB_PASSWORD: ${CORAG_APP_DB_PASSWORD:?set in .env on the Pi}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  api:
+    ports: !reset []
+    environment:
+      ENVIRONMENT: production
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set in .env on the Pi}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?set in .env on the Pi}
+      API_KEY_SALT: ${API_KEY_SALT:?set in .env on the Pi}
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
+  worker:
+    environment:
+      ENVIRONMENT: production
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set in .env on the Pi}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?set in .env on the Pi}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  web:
+    ports: !reset []
+    environment:
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set in .env on the Pi}
+      AUTH_SECRET: ${AUTH_SECRET:?set in .env on the Pi}
+      AUTH_URL: https://corag.iquantum.co
+    deploy:
+      resources:
+        limits:
+          memory: 512M

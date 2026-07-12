@@ -1,0 +1,17 @@
+# Overlay that publishes the stack at https://corag.iquantum.co via
+# Cloudflare Tunnel. Usage:
+#   docker compose -f docker-compose.yml \
+#     -f deploy/cloudflare/docker-compose.tunnel.yml \
+#     --profile tunnel up -d --build
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: ['tunnel']
+    user: '1000'
+    command: tunnel --config /etc/cloudflared-app/config.yml run
+    volumes:
+      - ${HOME}/.cloudflared:/etc/cloudflared:ro
+      - ./deploy/cloudflare/config.yml:/etc/cloudflared-app/config.yml:ro
+    depends_on:
+      - web
+    restart: unless-stopped
