@@ -44,6 +44,19 @@ async def tenant_headers(migrated_db):
     }, result.tenant_id
 
 
+@pytest.fixture
+async def clean_queue(migrated_db):
+    """Park leftover jobs from earlier runs so ORDER BY id claims ours."""
+    admin = await asyncpg.connect(migrated_db)
+    try:
+        await admin.execute(
+            "UPDATE ingest_job SET status = 'done' "
+            "WHERE status IN ('queued', 'running')"
+        )
+    finally:
+        await admin.close()
+
+
 def _upload(client, headers, filename="notes.txt", content=b"", mime="text/plain"):
     content = content or b"CoRAG was founded in 2026. " * 100
     return client.post(
@@ -67,7 +80,9 @@ async def _run_worker_once(embedder) -> bool:
         pool_mod._pool = saved
 
 
-async def test_upload_queue_index_roundtrip(client, tenant_headers, migrated_db):
+async def test_upload_queue_index_roundtrip(
+    client, tenant_headers, migrated_db, clean_queue
+):
     headers, tenant_id = tenant_headers
 
     created = _upload(client, headers)
@@ -104,7 +119,7 @@ async def test_upload_queue_index_roundtrip(client, tenant_headers, migrated_db)
 
 
 async def test_worker_failure_marks_document_failed(
-    client, tenant_headers, migrated_db
+    client, tenant_headers, migrated_db, clean_queue
 ):
     headers, _ = tenant_headers
     doc = _upload(client, headers).json()
