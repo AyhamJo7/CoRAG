@@ -34,13 +34,15 @@ export default async function DashboardPage() {
       </header>
 
       <section className="mt-12 grid gap-4 md:grid-cols-2">
-        <div className="rounded-lg border border-white/10 p-6">
+        <a
+          href="/documents"
+          className="rounded-lg border border-white/10 p-6 transition-colors hover:border-[var(--accent)]"
+        >
           <h2 className="font-medium">Documents</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
             Upload documents and CoRAG will index them for multi-hop questions.
-            Coming in the next release.
           </p>
-        </div>
+        </a>
         <div className="rounded-lg border border-white/10 p-6">
           <h2 className="font-medium">Ask</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">

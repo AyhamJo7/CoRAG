@@ -47,6 +47,20 @@ services:
       migrate:
         condition: service_completed_successfully
 
+  worker:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    command: python -m corag_cloud.ingest.worker
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DATABASE_URL: postgresql://corag_app:${CORAG_APP_DB_PASSWORD:-corag_app}@postgres:5432/corag
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-dev-insecure-internal-token}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   web:
     build:
       context: ./frontend
