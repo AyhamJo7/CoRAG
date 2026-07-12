@@ -5,14 +5,17 @@ additionally requires the shared internal token.
 """
 
 import logging
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 
+from corag_cloud.billing.plans import is_valid_plan
+from corag_cloud.billing.sync import apply_stripe_event
 from corag_cloud.config import Settings, get_settings
-from corag_cloud.db.pool import plain_connection
+from corag_cloud.db.pool import plain_connection, tenant_connection
 from corag_cloud.deps import require_internal
 from corag_cloud.provision import (
     EmailAlreadyExists,
@@ -110,3 +113,59 @@ async def login(body: LoginRequest) -> LoginResponse:
             for r in rows
         ],
     )
+
+
+class BillingSyncRequest(BaseModel):
+    event_id: str = Field(min_length=1, max_length=255)
+    event_type: str = Field(min_length=1, max_length=100)
+    tenant_id: UUID
+    plan: str | None = None
+    stripe_customer_id: str | None = None
+    stripe_subscription_id: str | None = None
+    subscription_status: str | None = None
+    period_end: datetime | None = None
+    cancel: bool = False
+
+
+class BillingSyncResponse(BaseModel):
+    duplicate: bool
+    updated: bool
+
+
+@router.post("/billing/sync", response_model=BillingSyncResponse)
+async def billing_sync(body: BillingSyncRequest) -> BillingSyncResponse:
+    """Apply a verified Stripe event to tenant billing state (idempotent)."""
+    if body.plan is not None and not is_valid_plan(body.plan):
+        raise HTTPException(status_code=422, detail="Unknown plan")
+    outcome = await apply_stripe_event(
+        event_id=body.event_id,
+        event_type=body.event_type,
+        tenant_id=body.tenant_id,
+        plan=body.plan,
+        stripe_customer_id=body.stripe_customer_id,
+        stripe_subscription_id=body.stripe_subscription_id,
+        subscription_status=body.subscription_status,
+        period_end=body.period_end,
+        cancel=body.cancel,
+    )
+    return BillingSyncResponse(duplicate=outcome.duplicate, updated=outcome.updated)
+
+
+class BillingStateResponse(BaseModel):
+    plan: str
+    subscription_status: str | None
+    stripe_customer_id: str | None
+
+
+@router.get("/billing/state", response_model=BillingStateResponse)
+async def billing_state(tenant_id: UUID) -> BillingStateResponse:
+    """Billing state for the portal route (server-side only)."""
+    async with tenant_connection(tenant_id) as conn:
+        tenant = await conn.fetchrow(
+            "SELECT plan, subscription_status, stripe_customer_id "
+            "FROM tenant WHERE id = $1",
+            tenant_id,
+        )
+    if tenant is None:
+        raise HTTPException(status_code=404, detail="Unknown tenant")
+    return BillingStateResponse(**dict(tenant))

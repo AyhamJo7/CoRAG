@@ -13,7 +13,17 @@ export default function LandingPage() {
         retrieves iteratively, and answers only when the evidence is
         sufficient.
       </p>
-      <p className="mt-10 text-sm text-[var(--muted)]">Coming soon.</p>
+      <div className="mt-10 flex items-center gap-4">
+        <a
+          href="/sign-up"
+          className="rounded bg-[var(--accent)] px-5 py-2 font-medium text-black"
+        >
+          Start free trial
+        </a>
+        <a href="/pricing" className="text-sm text-[var(--muted)] hover:text-white">
+          Pricing →
+        </a>
+      </div>
     </main>
   );
 }
