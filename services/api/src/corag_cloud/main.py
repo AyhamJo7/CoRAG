@@ -8,7 +8,15 @@ from fastapi import FastAPI
 
 from corag_cloud.config import get_settings
 from corag_cloud.db.pool import close_pool, open_pool
-from corag_cloud.routers import ask, documents, health, internal, usage
+from corag_cloud.routers import (
+    api_keys_router,
+    ask,
+    documents,
+    health,
+    internal,
+    usage,
+    v1,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,6 +50,8 @@ def create_app() -> FastAPI:
     app.include_router(documents.router)
     app.include_router(ask.router)
     app.include_router(usage.router)
+    app.include_router(api_keys_router.router)
+    app.include_router(v1.router)
     return app
 
 

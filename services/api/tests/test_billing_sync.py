@@ -53,6 +53,10 @@ def _evt() -> str:
 
 
 async def test_checkout_event_activates_plan(client, tenant_id):
+    # Unique per run: stripe ids carry UNIQUE constraints and the test
+    # database is reused across local runs.
+    customer = f"cus_{uuid.uuid4().hex[:12]}"
+    subscription = f"sub_{uuid.uuid4().hex[:12]}"
     response = client.post(
         "/internal/billing/sync",
         headers=AUTH,
@@ -61,8 +65,8 @@ async def test_checkout_event_activates_plan(client, tenant_id):
             "event_type": "checkout.session.completed",
             "tenant_id": str(tenant_id),
             "plan": "starter",
-            "stripe_customer_id": "cus_123",
-            "stripe_subscription_id": "sub_123",
+            "stripe_customer_id": customer,
+            "stripe_subscription_id": subscription,
             "subscription_status": "active",
         },
     )
@@ -72,7 +76,7 @@ async def test_checkout_event_activates_plan(client, tenant_id):
     tenant = await _tenant_row(tenant_id)
     assert tenant["plan"] == "starter"
     assert tenant["subscription_status"] == "active"
-    assert tenant["stripe_customer_id"] == "cus_123"
+    assert tenant["stripe_customer_id"] == customer
 
 
 async def test_replayed_event_is_a_noop(client, tenant_id):
@@ -202,6 +206,7 @@ def test_unknown_plan_rejected(client, tenant_id):
 
 
 async def test_billing_state_endpoint(client, tenant_id):
+    customer = f"cus_{uuid.uuid4().hex[:12]}"
     client.post(
         "/internal/billing/sync",
         headers=AUTH,
@@ -210,7 +215,7 @@ async def test_billing_state_endpoint(client, tenant_id):
             "event_type": "checkout.session.completed",
             "tenant_id": str(tenant_id),
             "plan": "pro",
-            "stripe_customer_id": "cus_state",
+            "stripe_customer_id": customer,
             "subscription_status": "active",
         },
     )
@@ -220,4 +225,4 @@ async def test_billing_state_endpoint(client, tenant_id):
     assert response.status_code == 200
     body = response.json()
     assert body["plan"] == "pro"
-    assert body["stripe_customer_id"] == "cus_state"
+    assert body["stripe_customer_id"] == customer

@@ -58,6 +58,14 @@ export default async function DashboardPage() {
         Plan: <span className="text-white">{tenant?.plan ?? "trial"}</span> ·{" "}
         <a href="/usage" className="text-[var(--accent)]">
           usage
+        </a>{" "}
+        ·{" "}
+        <a href="/billing" className="text-[var(--accent)]">
+          billing
+        </a>{" "}
+        ·{" "}
+        <a href="/api-keys" className="text-[var(--accent)]">
+          API keys
         </a>
       </p>
     </main>

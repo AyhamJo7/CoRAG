@@ -9,6 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Committed defaults that must never survive into a non-development
 # environment; the validator below refuses startup if they do.
 INSECURE_INTERNAL_TOKEN = "dev-insecure-internal-token"
+INSECURE_API_KEY_SALT = "dev-insecure-api-key-salt"
 
 
 class Settings(BaseSettings):
@@ -34,6 +35,10 @@ class Settings(BaseSettings):
     ask_max_steps: int = 4
     ask_k: int = 6
     ask_max_tokens: int = 1024
+    ask_rate_limit_per_minute: int = 6
+
+    # Salts developer API keys before hashing (see api_keys.py).
+    api_key_salt: str = INSECURE_API_KEY_SALT
 
     # Real-card billing stays off until the company-registration gate lifts.
     allow_live_billing: bool = False
@@ -47,6 +52,10 @@ class Settings(BaseSettings):
             problems.append("INTERNAL_SERVICE_TOKEN is still the insecure default")
         if not self.internal_service_token or len(self.internal_service_token) < 32:
             problems.append("INTERNAL_SERVICE_TOKEN must be at least 32 characters")
+        if self.api_key_salt == INSECURE_API_KEY_SALT or len(self.api_key_salt) < 32:
+            problems.append(
+                "API_KEY_SALT must be set to a unique value of at least 32 characters"
+            )
         if problems:
             raise ValueError(
                 "Refusing to start in non-development environment: "

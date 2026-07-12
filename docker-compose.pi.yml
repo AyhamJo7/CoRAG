@@ -22,6 +22,7 @@ services:
       ENVIRONMENT: production
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set in .env on the Pi}
       OPENAI_API_KEY: ${OPENAI_API_KEY:?set in .env on the Pi}
+      API_KEY_SALT: ${API_KEY_SALT:?set in .env on the Pi}
     deploy:
       resources:
         limits:
