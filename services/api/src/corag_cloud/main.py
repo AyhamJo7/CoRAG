@@ -1,16 +1,29 @@
 """FastAPI application factory for CoRAG Cloud."""
 
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
 from corag_cloud.config import get_settings
-from corag_cloud.routers import health
+from corag_cloud.db.pool import close_pool, open_pool
+from corag_cloud.routers import health, internal
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    settings = get_settings()
+    if settings.database_url:
+        await open_pool(settings.database_url)
+    yield
+    if settings.database_url:
+        await close_pool()
 
 
 def create_app() -> FastAPI:
@@ -22,8 +35,10 @@ def create_app() -> FastAPI:
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
+        lifespan=lifespan,
     )
     app.include_router(health.router)
+    app.include_router(internal.router)
     return app
 
 
