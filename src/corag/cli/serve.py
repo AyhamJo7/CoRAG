@@ -8,7 +8,8 @@ import click
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 from corag.controller.base import GenerationConfig
 from corag.controller.openai_controller import OpenAIController
@@ -29,13 +30,18 @@ logger = logging.getLogger(__name__)
 app_state: dict[str, object] = {}
 
 
+MAX_QUESTION_LENGTH = 2000
+MAX_RETRIEVAL_STEPS = 10
+MAX_CHUNKS_PER_QUERY = 50
+
+
 class AskRequest(BaseModel):
     """Request model for /ask endpoint."""
 
-    question: str
-    max_steps: int = 6
-    k: int = 8
-    temperature: float = 0.2
+    question: str = Field(min_length=1, max_length=MAX_QUESTION_LENGTH)
+    max_steps: int = Field(default=6, ge=1, le=MAX_RETRIEVAL_STEPS)
+    k: int = Field(default=8, ge=1, le=MAX_CHUNKS_PER_QUERY)
+    temperature: float = Field(default=0.2, ge=0.0, le=2.0)
 
 
 class AskResponse(BaseModel):
@@ -56,9 +62,16 @@ app = FastAPI(
 
 
 @app.get("/healthz")
-async def health_check() -> dict:
-    """Health check endpoint."""
-    return {"status": "healthy", "version": "0.1.0"}
+async def health_check() -> JSONResponse:
+    """Health check endpoint; 503 until the pipeline is loaded."""
+    ready = "pipeline" in app_state and "synthesizer" in app_state
+    return JSONResponse(
+        status_code=200 if ready else 503,
+        content={
+            "status": "healthy" if ready else "unavailable",
+            "version": "0.1.0",
+        },
+    )
 
 
 @app.get("/version")
@@ -68,8 +81,15 @@ async def version() -> dict:
 
 
 @app.post("/ask", response_model=AskResponse)
-async def ask(request: AskRequest) -> AskResponse:
-    """Answer a complex question using CoRAG."""
+def ask(request: AskRequest) -> AskResponse:
+    """Answer a complex question using CoRAG.
+
+    Defined sync so FastAPI runs the blocking retrieval loop in its
+    threadpool instead of stalling the event loop.
+    """
+    if "pipeline" not in app_state or "synthesizer" not in app_state:
+        raise HTTPException(status_code=503, detail="Service is not ready")
+
     try:
         # Get components from state
         pipeline: RetrievalPipeline = app_state["pipeline"]  # type: ignore[assignment]
@@ -107,8 +127,11 @@ async def ask(request: AskRequest) -> AskResponse:
         )
 
     except Exception as e:
-        logger.error(f"Error processing request: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        logger.exception("Error processing request")
+        raise HTTPException(
+            status_code=500,
+            detail="Internal error while processing the question",
+        ) from e
 
 
 @click.command()
