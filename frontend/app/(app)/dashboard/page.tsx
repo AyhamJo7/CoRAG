@@ -43,17 +43,22 @@ export default async function DashboardPage() {
             Upload documents and CoRAG will index them for multi-hop questions.
           </p>
         </a>
-        <div className="rounded-lg border border-white/10 p-6">
+        <a
+          href="/ask"
+          className="rounded-lg border border-white/10 p-6 transition-colors hover:border-[var(--accent)]"
+        >
           <h2 className="font-medium">Ask</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
             Ask complex questions over your documents with cited answers.
-            Coming in the next release.
           </p>
-        </div>
+        </a>
       </section>
 
       <p className="mt-10 text-sm text-[var(--muted)]">
-        Plan: <span className="text-white">{tenant?.plan ?? "trial"}</span>
+        Plan: <span className="text-white">{tenant?.plan ?? "trial"}</span> ·{" "}
+        <a href="/usage" className="text-[var(--accent)]">
+          usage
+        </a>
       </p>
     </main>
   );
