@@ -12,7 +12,7 @@ help:
 	@echo "  all         Run lint, typecheck, and test"
 
 install:
-	pip install -e ".[dev]"
+	pip install -e ".[research,dev]"
 
 test:
 	pytest --cov=corag --cov-report=term-missing --cov-report=html
