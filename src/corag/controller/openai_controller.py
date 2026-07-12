@@ -5,12 +5,23 @@ import time
 from typing import Any, cast
 
 import tiktoken
-from openai import OpenAI
+from openai import (
+    APIConnectionError,
+    InternalServerError,
+    OpenAI,
+    RateLimitError,
+)
 from openai.types.chat import ChatCompletionMessageParam
 
 from corag.controller.base import Controller, GenerationConfig
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_REQUEST_TIMEOUT = 60.0
+
+# Transient failures worth retrying; auth/validation errors propagate
+# immediately. ValueError covers empty completions.
+RETRYABLE_ERRORS = (APIConnectionError, RateLimitError, InternalServerError, ValueError)
 
 
 class OpenAIController(Controller):
@@ -23,6 +34,7 @@ class OpenAIController(Controller):
         api_base: str | None = None,
         max_retries: int = 3,
         retry_delay: float = 1.0,
+        timeout: float = DEFAULT_REQUEST_TIMEOUT,
     ):
         """Initialize OpenAI controller.
 
@@ -32,15 +44,19 @@ class OpenAIController(Controller):
             api_base: Custom API base URL
             max_retries: Maximum number of retries on failure
             retry_delay: Delay between retries in seconds
+            timeout: Per-request timeout in seconds
         """
         self.model = model
         self.max_retries = max_retries
         self.retry_delay = retry_delay
 
+        # SDK-level retries are disabled so this class owns the retry policy.
         if api_base:
-            self.client = OpenAI(api_key=api_key, base_url=api_base)
+            self.client = OpenAI(
+                api_key=api_key, base_url=api_base, timeout=timeout, max_retries=0
+            )
         else:
-            self.client = OpenAI(api_key=api_key)
+            self.client = OpenAI(api_key=api_key, timeout=timeout, max_retries=0)
 
         # Initialize tokenizer
         try:
@@ -112,7 +128,7 @@ class OpenAIController(Controller):
 
                 return text
 
-            except Exception as e:
+            except RETRYABLE_ERRORS as e:
                 logger.warning(f"API call failed (attempt {attempt + 1}): {e}")
                 if attempt < self.max_retries - 1:
                     time.sleep(self.retry_delay * (attempt + 1))
