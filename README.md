@@ -151,6 +151,10 @@ corag-eval \
 
 Results are saved as JSON (summary) and CSV (detailed).
 
+Reported metrics: Exact Match, F1, and — when the dataset provides gold
+supporting documents — retrieval precision/recall (were the gold documents
+retrieved?) and citation precision/recall (did the answer cite them?).
+
 ## Project Structure
 
 ```
@@ -179,7 +183,6 @@ CoRAG/
 │   ├── cli/               # Command-line interfaces
 │   └── utils/             # Text processing utilities
 ├── tests/                 # Comprehensive test suite
-├── scripts/               # Standalone scripts
 ├── docs/                  # Additional documentation
 ├── configs/               # Configuration files
 ├── examples/              # Example queries and outputs

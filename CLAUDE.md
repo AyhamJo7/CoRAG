@@ -49,15 +49,15 @@ corag-eval            # run benchmark evaluation
 corag-serve           # start FastAPI service
 ```
 
-Config: `configs/config.yaml` (system), `configs/prompts.yaml` (LLM prompts)
+Config: all CLIs are flag-driven (see `--help`); `configs/config.yaml` and `configs/prompts.yaml` document the reference defaults. Env vars via `.env` (see `.env.example`).
 
 ## Evaluation
 
 Benchmarks: **HotpotQA** (multi-hop reasoning), **2WikiMultihopQA** (cross-document multi-hop)
 
-Primary metrics: Exact Match (EM), F1 score, citation precision/recall
+Primary metrics: Exact Match (EM), F1 score, retrieval precision/recall and citation precision/recall against gold supporting documents
 
-Run evaluation: `corag-eval --config configs/config.yaml --dataset hotpotqa`
+Run evaluation: `corag-eval --dataset hotpotqa --index-dir data/index --output reports/hotpotqa_results`
 
 Results land in `reports/`.
 

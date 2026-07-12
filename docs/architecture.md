@@ -25,8 +25,8 @@ CoRAG implements a multi-stage pipeline for answering complex queries through ad
 ### 2. Controller Layer
 
 **LLM Orchestration**
-- Abstract interface supporting multiple providers (OpenAI, Anthropic, local models)
-- Rate limiting and retry logic
+- Abstract interface; ships an OpenAI-compatible controller (works with any OpenAI-compatible endpoint, including local servers)
+- Request timeouts with selective retry on transient failures
 - Token counting for budget tracking
 
 **Prompt Engineering**
