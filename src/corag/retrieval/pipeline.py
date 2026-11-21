@@ -9,8 +9,7 @@ from corag.controller.prompts import (
     GAP_ANALYSIS_PROMPT,
     SELF_CRITIQUE_PROMPT,
 )
-from corag.indexing.embedder import Embedder
-from corag.indexing.index import FAISSIndex
+from corag.retrieval.interfaces import QueryEmbedder, SearchIndex
 from corag.retrieval.state import RetrievalState, RetrievalStep
 from corag.utils.text import truncate_text
 
@@ -22,8 +21,8 @@ class RetrievalPipeline:
 
     def __init__(
         self,
-        index: FAISSIndex,
-        embedder: Embedder,
+        index: SearchIndex,
+        embedder: QueryEmbedder,
         controller: Controller,
         k: int = 8,
         max_steps: int = 6,
@@ -33,8 +32,8 @@ class RetrievalPipeline:
         """Initialize retrieval pipeline.
 
         Args:
-            index: FAISS index for retrieval
-            embedder: Text embedder
+            index: Search index for retrieval (FAISS, pgvector, ...)
+            embedder: Query embedder
             controller: LLM controller
             k: Number of chunks to retrieve per query
             max_steps: Maximum retrieval steps

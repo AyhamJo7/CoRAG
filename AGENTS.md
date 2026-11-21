@@ -25,7 +25,7 @@ evidence is sufficient -> generate with citations.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev]"
+pip install -e ".[research,dev]"
 make lint
 make typecheck
 make test

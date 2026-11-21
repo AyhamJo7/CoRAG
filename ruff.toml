@@ -20,7 +20,7 @@ ignore = [
 "__init__.py" = ["F401"]
 
 [lint.isort]
-known-first-party = ["corag"]
+known-first-party = ["corag", "corag_cloud"]
 
 [format]
 quote-style = "double"

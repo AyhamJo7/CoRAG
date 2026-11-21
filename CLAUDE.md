@@ -32,7 +32,7 @@ src/corag/
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"      # install with dev extras
+pip install -e ".[research,dev]"   # research stack + dev tools
 
 make install     # same as above
 make lint        # ruff check + format

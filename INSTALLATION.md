@@ -12,7 +12,7 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install package with dev dependencies
-pip install -e ".[dev]"
+pip install -e ".[research,dev]"
 
 # Verify installation
 corag-search --help
