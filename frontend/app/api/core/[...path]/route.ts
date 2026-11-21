@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/auth";
+import { resolveProxyPath } from "@/server/proxy-path";
 
 // Catch-all BFF reverse proxy: the browser talks only to /api/core/*; this
 // handler authenticates the Auth.js session, binds the active workspace
@@ -9,9 +10,6 @@ import { auth } from "@/auth";
 // Bodies are streamed through untouched in both directions (SSE-safe).
 
 export const dynamic = "force-dynamic";
-
-// Service-only surfaces the browser must never reach.
-const BLOCKED_PREFIXES = new Set(["internal", "admin", "healthz"]);
 
 const HOP_BY_HOP = new Set([
   "connection",
@@ -31,7 +29,8 @@ async function handler(
   }
 
   const { path } = await params;
-  if (!path?.length || BLOCKED_PREFIXES.has(path[0])) {
+  const upstreamPath = resolveProxyPath(path ?? []);
+  if (!upstreamPath) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
@@ -50,7 +49,7 @@ async function handler(
     return NextResponse.json({ error: "No workspace bound" }, { status: 403 });
   }
 
-  const target = `${backendUrl.replace(/\/$/, "")}/${path.join("/")}${req.nextUrl.search}`;
+  const target = `${backendUrl.replace(/\/$/, "")}/${upstreamPath}${req.nextUrl.search}`;
   const headers = new Headers();
   const contentType = req.headers.get("content-type");
   if (contentType) headers.set("content-type", contentType);
