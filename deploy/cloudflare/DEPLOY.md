@@ -18,8 +18,17 @@ Only `cloudflared` dials out; no ports are published on the host.
 
 3. Create `~/apps/corag/.env` on the Pi with real values for
    `POSTGRES_PASSWORD`, `CORAG_APP_DB_PASSWORD`, `INTERNAL_SERVICE_TOKEN`,
-   `AUTH_SECRET`, `OPENAI_API_KEY` (the Pi overlay refuses to start without
-   them).
+   `AUTH_SECRET`, `API_KEY_SALT`, `OPENAI_API_KEY` (the Pi overlay refuses to
+   start without them). Generate each secret with `openssl rand -hex 32`.
+   `API_KEY_SALT` must stay stable: rotating it invalidates every issued
+   developer API key.
+
+4. Billing (Stripe **TEST** mode until the UG is registered): set
+   `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` and
+   `STRIPE_PRICE_STARTER` / `STRIPE_PRICE_PRO` / `STRIPE_PRICE_TEAM` in the
+   same `.env`. Without them checkout and the webhook return 503 and the
+   rest of the app keeps working. The webhook endpoint is
+   `https://corag.iquantum.co/api/webhooks/stripe`.
 
 ## Deploy
 
@@ -38,3 +47,9 @@ Sanity checks after every deploy:
   publish nothing.
 - `curl -s https://corag.iquantum.co` returns the landing page.
 - Register → sign in → dashboard renders the workspace.
+
+## Backups
+
+Add `--profile backup` to the `up` command above to run the daily `pg_dump`
+sidecar (custom format, newest 7 kept, in the `pgbackups` volume). Restore
+with `pg_restore -h postgres -U postgres -d corag --clean <file>`.
