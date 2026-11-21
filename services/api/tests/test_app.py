@@ -60,6 +60,16 @@ def test_internal_token_required() -> None:
     )
 
 
+def test_non_ascii_internal_token_is_rejected_not_500() -> None:
+    client = TestClient(_protected_app(), raise_server_exceptions=False)
+
+    response = client.get(
+        "/whoami", headers={"x-internal-token": "tökén".encode("latin-1")}
+    )
+
+    assert response.status_code == 401
+
+
 def test_internal_token_and_identity_headers_accepted() -> None:
     client = TestClient(_protected_app())
     headers = {

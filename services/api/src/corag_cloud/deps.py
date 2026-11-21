@@ -24,7 +24,10 @@ def require_internal(
     x_internal_token: Annotated[str, Header()] = "",
 ) -> None:
     """Reject requests that do not carry the BFF shared secret."""
-    if not hmac.compare_digest(x_internal_token, settings.internal_service_token):
+    # Compare bytes: str compare_digest raises TypeError on non-ASCII input.
+    if not hmac.compare_digest(
+        x_internal_token.encode(), settings.internal_service_token.encode()
+    ):
         raise HTTPException(status_code=401, detail="Invalid internal token")
 
 
